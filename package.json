@@ -1,0 +1,9 @@
+{
+  "name": "barry",
+  "version": "0.0.1",
+  "repo": "jwerle/barry",
+  "description": "Light weight scripting language",
+  "keywords": ["barry", "scripting", "language"],
+  "install": "make barry install"
+}
+
