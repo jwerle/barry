@@ -2,6 +2,9 @@
 ## program name
 BIN ?= barry
 
+## program prefix install path
+PREFIX ?= /usr/local
+
 ## program main
 MAIN = main.c
 
@@ -26,4 +29,10 @@ $(OBJS):
 
 clean:
 	rm -f $(OBJS) $(BIN)
+
+install: $(BIN)
+	install $(BIN) $(PREFIX)/bin
+
+uninstall:
+	rm -f $(PREFIX)/bin/$(BIN)
 
