@@ -38,9 +38,9 @@ $ make install
 ```ruby
 name = "Joseph Werle"
 
-def greet {
+def greet
   print("Hello", name, "!")
-}
+end
 
 greet()
 ```
