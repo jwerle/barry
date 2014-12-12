@@ -41,7 +41,12 @@ BARRY_DEFINITION (const char *name, const char *body) {
   }
 
   BARRY_GLOBAL->definitions[BARRY_GLOBAL->definition_length++] =
-    (barry_def_t) { .name = name, .body = body };
+    (barry_def_t) {
+      .name = name,
+      .body = body,
+      .locals = (barry_scope_t *) malloc(sizeof(barry_scope_t)),
+      .global = BARRY_GLOBAL,
+    };
 }
 
 void

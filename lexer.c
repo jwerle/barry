@@ -38,11 +38,18 @@ prev (barry_lexer_t *self) {
   int idx = self->offset - 1;
   if (idx < 0) {
     self->offset = 0;
+    self->colno = 1;
     self->ch = self->src[0];
     self->pch = 0;
     return self->src[0];
   } else {
     self->offset--;
+    if (self->colno < 3) {
+      self->colno = 1;
+    } else {
+      self->colno--;
+    }
+
     self->ch = self->src[idx];
     if (0 == idx) {
       self->pch = 0;
@@ -80,7 +87,6 @@ scan_identifier (barry_lexer_t *self, unsigned char ch) {
     ch = next(self);
   } while (isalpha(ch) || isdigit(ch) || '_' == ch || '.' == ch);
 
-
   prev(self);
 
   if (0 == size) {
@@ -89,7 +95,6 @@ scan_identifier (barry_lexer_t *self, unsigned char ch) {
   }
 
   buf[size] = '\0';
-  self->colno -= size;
 
   num = 1;
   for (; i < size; ++i) {

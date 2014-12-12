@@ -112,54 +112,97 @@ is_declaration (barry_node_t *node) {
     return 0;
   }
 
-#define var BARRY_GLOBAL->decls[i]
-  for (;i < BARRY_GLOBAL->decl_length; ++i) {
-    if (EQ(node->token.as.string, var.key)) {
-      return 1;
-    }
+#define var SCOPE->decls[i]
+#define find() \
+  for (i = 0 ; i < SCOPE->decl_length; ++i) { \
+    if (EQ(node->token.as.string, var.key)) { return 1; } \
   }
+
+#define SCOPE node->scope
+  find();
+#undef SCOPE
+
+#define SCOPE BARRY_GLOBAL
+  find();
+#undef SCOPE
+
 #undef var
+#undef find
+
   return 0;
 }
 
 static barry_function_t *
-get_function (const char *name) {
+get_function (barry_node_t *node) {
+  const char *name = node->token.as.string;
   int i = 0;
-#define fn BARRY_GLOBAL->functions[i]
-  for (;i < BARRY_GLOBAL->function_length; ++i) {
-    if (EQ(name, fn.name)) {
-      return &fn;
-    }
+
+#define fn SCOPE->functions[i]
+#define find() \
+  for (i = 0 ;i < SCOPE->function_length; ++i) { \
+    if (EQ(name, fn.name)) { return &fn; } \
   }
+
+#define SCOPE node->scope
+  find();
+#undef SCOPE
+
+#define SCOPE BARRY_GLOBAL
+  find();
+#undef SCOPE
+
 #undef fn
+#undef find
+
   return NULL;
 }
 
 static void *
-get_declaration (const char *key) {
+get_declaration (barry_node_t *node) {
+  const char *key = node->token.as.string;
   int i = 0;
-#define var BARRY_GLOBAL->decls[i]
-  for (;i < BARRY_GLOBAL->decl_length; ++i) {
-    if (EQ(key, var.key)) {
-      return var.value;
-    }
+#define var SCOPE->decls[i]
+#define find() \
+  for (i = 0; i < SCOPE->decl_length; ++i) { \
+    if (EQ(key, var.key)) { return var.value; } \
   }
-#undef var
 
-  error("%s is not defined", key);
+#define SCOPE node->scope
+  find();
+#undef SCOPE
+
+#define SCOPE BARRY_GLOBAL
+  find();
+#undef SCOPE
+
+#undef var
+#undef find
+
   return NULL;
 }
 
 static barry_def_t *
-get_definition (const char *name) {
+get_definition (barry_node_t *node) {
+  const char *name = node->token.as.string;
   int i = 0;
-#define def BARRY_GLOBAL->definitions[i]
-  for (;i < BARRY_GLOBAL->definition_length; ++i) {
-    if (EQ(name, def.name)) {
-      return &def;
-    }
+
+#define def SCOPE->definitions[i]
+#define find() \
+  for (i = 0 ;i < SCOPE->definition_length; ++i) { \
+    if (EQ(name, def.name)) { return &def; } \
   }
+
+#define SCOPE node->scope
+  find();
+#undef SCOPE
+
+#define SCOPE BARRY_GLOBAL
+  find();
+#undef SCOPE
+
+#undef find
 #undef def
+
   return NULL;
 }
 
@@ -176,7 +219,7 @@ assign_declaration_node (barry_node_t *node) {
 
   switch (value->token.type) {
     case TOK_IDENTIFIER:
-      v = get_declaration(value->token.as.string);
+      v = get_declaration(value);
       BARRY_DECLARTION(key, v);
       break;
 
@@ -280,7 +323,13 @@ call_function_node (barry_node_t *node) {
         }
 
         if (is_declaration(next)) {
-          push(get_declaration(next->token.as.string));
+          push(get_declaration(next));
+        } else {
+          error("Error [%d:%d]: `%s' is not defined.\n",
+              next->token.lineno,
+              (int) (next->prev->token.colno - strlen(next->token.as.string)),
+              next->token.as.string);
+          return 1;
         }
 
         break;
@@ -290,15 +339,15 @@ call_function_node (barry_node_t *node) {
 #undef push
 
   node->ast->current = next->next;
-  barry_function_t *fn = get_function(node->token.as.string);
+  barry_function_t *fn = get_function(node);
   barry_def_t *def = NULL;
 
   if (NULL == fn) {
-    def = get_definition(node->token.as.string);
+    def = get_definition(node);
     if (NULL == def) {
       error("%s is not a function", node->token.as.string);
     } else {
-      return barry_parse((char *) def->name, (char *) def->body);
+      return barry_parse((char *) def->name, (char *) def->body, def->locals);
     }
     return 1;
   } else {
@@ -358,7 +407,7 @@ barry_eval (barry_ast_t *ast) {
 }
 
 int
-barry_parse (char *file, char *src) {
+barry_parse (char *file, char *src, barry_scope_t *scope) {
   barry_lexer_t *lexer = (barry_lexer_t *) malloc(sizeof(barry_lexer_t));
   barry_ast_t *ast = (barry_ast_t *) malloc(sizeof(barry_ast_t));
 
@@ -387,10 +436,12 @@ barry_parse (char *file, char *src) {
     barry_node_t *node = (barry_node_t *) malloc(sizeof(barry_node_t));
     node->token = lexer->curr;
     node->ast = ast;
+    node->scope = NULL == scope ? BARRY_GLOBAL : scope;
 
     if (ast->length > 0) {
-      ast->nodes[ast->length - 1]->next = node;
+      node->prev = ast->nodes[ast->length - 1]->next = node;
     }
+
 
     ast->nodes[ast->length++] = node;
   }

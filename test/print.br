@@ -13,3 +13,4 @@ def greet {
 
 hello()
 greet()
+print(foo)

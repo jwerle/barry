@@ -7,6 +7,7 @@
 
 #include "token.h"
 
+struct barry_scope_s;
 struct barry_node_s;
 struct barry_ast_s;
 
@@ -30,9 +31,11 @@ typedef struct {
 typedef struct {
   const char *name;
   const char *body;
+  struct barry_scope_s *locals;
+  struct barry_scope_s *global;
 } barry_def_t;
 
-typedef struct {
+typedef struct barry_scope_s {
   barry_declaration_t decls[BARRY_SCOPE_MAX_DECL];
   barry_function_t functions[BARRY_SCOPE_MAX_DECL];
   barry_def_t definitions[BARRY_SCOPE_MAX_DECL];
@@ -44,7 +47,9 @@ typedef struct {
 
 typedef struct barry_node_s {
   barry_token_t token;
+  barry_scope_t *scope;
   struct barry_ast_s *ast;
+  struct barry_node_s *prev;
   struct barry_node_s *next;
   void *value;
 } barry_node_t;

@@ -75,5 +75,5 @@ main (int argc, char **argv) {
   }
 
   barry_init_globals();
-  return barry_parse(file, src);
+  return barry_parse(file, src, NULL);
 }
