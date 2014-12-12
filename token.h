@@ -27,6 +27,10 @@ enum {
   X(MULTIPLY),
   // /
   X(DIVIDE),
+  // <
+  X(LESS_THAN),
+  // >
+  X(GREATER_THAN),
   // =
   X(EQUAL),
   // ,
@@ -43,6 +47,14 @@ enum {
   X(BITWISE_RSHIFT),
   // <<
   X(BITWISE_LSHIFT),
+  // ||
+  X(OR),
+  // &&
+  X(AND),
+  // ==
+  X(EQUALITY),
+  // !=
+  X(NOT_EQUAL),
   // [a-zA-Z0-9]
   X(IDENTIFIER),
   // "string"
@@ -67,6 +79,12 @@ enum {
   X(BREAK),
   // continue
   X(CONTINUE),
+  // true
+  X(TRUE),
+  // false
+  X(FALSE),
+  // nil
+  X(NIL),
 #undef X
 };
 

@@ -10,8 +10,23 @@ def greet
   print("hello", name, "who is", age, "years old 'blah blah' \"foo\"")
 end
 
+def loops
+  #for i = 0; i < 10; ++i
+    #print(i);
+  #end
+end
+
+def conditionals
+  if (true) {
+    print("true")
+  } else {
+    print("false")
+  }
+end
+
 def main
   hello()
   greet()
+  loops()
 end
 

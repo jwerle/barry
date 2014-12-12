@@ -296,10 +296,15 @@ call_function_node (barry_node_t *node) {
     node->ast->current = next;
     next = next->next;
     switch (next->token.type) {
+      case TOK_RPAREN:
+      case TOK_COMMA:
+        break;
+
       case TOK_NUMBER:
       case TOK_STRING:
         push(next->token.as.string);
         break;
+
 
       case TOK_IDENTIFIER:
         parse_node(next);
@@ -323,6 +328,10 @@ call_function_node (barry_node_t *node) {
         }
 
         break;
+
+      default:
+        error("Error: Unexpected token `%s'", next->token.as.string);
+        return 1;
     }
   }
 
@@ -342,6 +351,31 @@ call_function_node (barry_node_t *node) {
     return 1;
   } else {
     fn->function(arguments);
+  }
+
+  return 0;
+}
+
+static int
+parse_loop (barry_node_t *node) {
+
+  return 0;
+}
+
+static int
+parse_if (barry_node_t *node) {
+  barry_node_t *next = node->next;
+
+  if (TOK_IF != node->token.type) {
+    error("Error: Unexpected token `%s'. Expected `if'",
+        node->token.as.string);
+    return 1;
+  }
+
+  if (TOK_RPAREN != node->token.type) {
+    error("Error: Unexpected token `%s'. Expected `('",
+        node->token.as.string);
+    return 1;
   }
 
   return 0;
@@ -379,6 +413,21 @@ parse_node (barry_node_t *node) {
           return 1;
         }
       }
+      break;
+
+    case TOK_FOR:
+      if (parse_loop(node) > 0) {
+        return 1;
+      }
+      break;
+
+    case TOK_IF:
+      if (parse_if(node) > 0) {
+        return 1;
+      }
+      break;
+
+    case TOK_ELSE:
       break;
   }
 

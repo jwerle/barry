@@ -220,13 +220,21 @@ scan:
       return token(self, TOK_DIVIDE, "/"), 0;
 
     case '=':
-      return token(self, TOK_EQUAL, "="), 0;
+      if ('=' == peek(self)) {
+        return token(self, TOK_EQUALITY, "=="), 0;
+      } else {
+        return token(self, TOK_EQUAL, "="), 0;
+      }
 
     case '!':
       return token(self, TOK_NEGATE, "!"), 0;
 
     case '|':
-      return token(self, TOK_PIPE, "|"), 0;
+      if ('|' == peek(self)) {
+        return token(self, TOK_OR, "||"), 0;
+      } else {
+        return token(self, TOK_BITWISE_OR, "|"), 0;
+      }
 
     case '{':
       return token(self, TOK_LBRACE, "{"), 0;
