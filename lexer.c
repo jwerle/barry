@@ -2,6 +2,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "token.h"
 #include "lexer.h"
@@ -53,10 +54,12 @@ prev (barry_lexer_t *self) {
 }
 
 static void
-token (barry_lexer_t *self, int id, char *buf) {
+token (barry_lexer_t *self, int type, char *buf) {
   self->last = self->curr;
-  self->curr.id = id;
-  self->curr.as.string = buf;
+  self->curr.type = type;
+  self->curr.as.string = strdup(buf);
+  self->curr.lineno = self->lineno;
+  self->curr.colno = self->colno;
 }
 
 static int
@@ -77,8 +80,8 @@ scan_identifier (barry_lexer_t *self, unsigned char ch) {
   }
 
   buf[size] = '\0';
-  token(self, TOK_IDENTIFIER, (char *) buf);
   self->colno -= size;
+  token(self, TOK_IDENTIFIER, (char *) buf);
 
   return 0;
 }
@@ -112,8 +115,8 @@ scan_string (barry_lexer_t *self, unsigned char ch) {
   }
 
   buf[size] = '\0';
-  token(self, TOK_STRING, (char *) buf);
   self->colno -= size;
+  token(self, TOK_STRING, (char *) buf);
 
   return 0;
 }
@@ -142,6 +145,30 @@ scan:
 
     case ')':
       return token(self, TOK_RPAREN, ")"), 0;
+
+    case ';':
+      return token(self, TOK_SEMICOLON, ";"), 0;
+
+    case '+':
+      return token(self, TOK_PLUS, "+"), 0;
+
+    case '-':
+      return token(self, TOK_MINUS, "-"), 0;
+
+    case '*':
+      return token(self, TOK_MULTIPLY, "*"), 0;
+
+    case '/':
+      return token(self, TOK_DIVIDE, "/"), 0;
+
+    case '=':
+      return token(self, TOK_EQUAL, "="), 0;
+
+    case '!':
+      return token(self, TOK_NEGATE, "!"), 0;
+
+    case '|':
+      return token(self, TOK_NEGATE, "|"), 0;
 
     default: return scan_identifier(self, ch);
   }

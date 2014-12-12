@@ -1,2 +1,4 @@
 
-print("hi");
+foo = "123"
+print("parser test")
+print(foo)

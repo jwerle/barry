@@ -5,6 +5,7 @@
 
 #include <fs/fs.h>
 
+#include "global.h"
 #include "parser.h"
 #include "common.h"
 
@@ -73,5 +74,6 @@ main (int argc, char **argv) {
     return 1;
   }
 
+  barry_init_globals();
   return barry_parse(file, src);
 }
