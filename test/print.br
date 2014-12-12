@@ -11,6 +11,9 @@ def greet {
   print("hello", name, "who is", age, "years old")
 }
 
-hello()
-greet()
-print(foo)
+def object.hello {
+  hello()
+  greet()
+}
+
+object.hello()
