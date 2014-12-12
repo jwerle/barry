@@ -8,6 +8,8 @@
 #include "lexer.h"
 #include "common.h"
 
+#define peek(self) self->src[self->offset]
+
 static unsigned char
 next (barry_lexer_t *self) {
   unsigned char ch = 0;
@@ -80,6 +82,7 @@ scan_identifier (barry_lexer_t *self, unsigned char ch) {
   unsigned char buf[BUFSIZ];
   size_t size = 0;
   int num = 0;
+  int set = 0;
   int i = 0;
 
   do {
@@ -103,21 +106,36 @@ scan_identifier (barry_lexer_t *self, unsigned char ch) {
     }
   }
 
+#define SET_TOKEN_IF(str, tok)                             \
+  if (0 == set && EQ((char * ) str, (char *) buf)) {       \
+    set = 1; token(self, tok, (char *) buf);               \
+  }
+
   if (num) {
     token(self, TOK_NUMBER, (char *) buf);
-  } else if (EQ("end", (char *) buf)) {
-    token(self, TOK_END, (char *) buf);
   } else {
-    token(self, TOK_IDENTIFIER, (char *) buf);
+    SET_TOKEN_IF("if", TOK_IF);
+    SET_TOKEN_IF("do", TOK_DO);
+    SET_TOKEN_IF("for", TOK_FOR);
+    SET_TOKEN_IF("end", TOK_END);
+    SET_TOKEN_IF("else", TOK_ELSE);
+    SET_TOKEN_IF("while", TOK_WHILE);
+    SET_TOKEN_IF("break", TOK_WHILE);
+    SET_TOKEN_IF("continue", TOK_WHILE);
+    SET_TOKEN_IF(buf, TOK_IDENTIFIER);
   }
+
+#undef TOKEN
 
   return 0;
 }
 
 static int
 scan_string (barry_lexer_t *self, unsigned char ch) {
+  unsigned char quote = ch;
   unsigned char buf[BUFSIZ];
   size_t size = 0;
+  int ignore = 0;
 
   // prevent accidental non-strings
   if ('"' != ch && '\'' != ch) {
@@ -127,19 +145,24 @@ scan_string (barry_lexer_t *self, unsigned char ch) {
 
   while (1) {
     ch = next(self);
-    if ('"' == ch || '\'' == ch) {
+    ignore = 0;
+
+    if ('\\' == ch && ('"' == peek(self) || '\'' == peek(self))) {
+      buf[size++] = ch;
+      ch = next(self);
+      ignore = 1;
+    }
+
+    if (quote == ch && 0 == ignore) {
       break;
-    } else if ('\n' == ch || '\r' == ch) {
+    }
+
+    if ('\n' == ch || '\r' == ch) {
       // @TODO - handle with syntax error
       return -1;
     }
 
     buf[size++] = ch;
-  }
-
-  if (0 == size) {
-    // @TODO - handle with error
-    return -1;
   }
 
   buf[size] = '\0';

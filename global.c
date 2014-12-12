@@ -70,11 +70,33 @@ barry_print (barry_function_arguments_t arguments) {
   int i = 0;
   size_t size = arguments.length;
   for (; i < size; ++i) {
-    printf("%s", arguments.values[i]);
-    if (i < size - 1) {
-      printf(" ");
+    char *value = arguments.values[i];
+    char out[BUFSIZ]; {
+      char ch = 0;
+      char p = 0;
+      int x = 0;
+      size_t len = strlen(value);
+      size_t s = 0;
+      for (; x < len; ++x) {
+        ch = value[x];
+        p = value[x + 1];
+
+        if ('\\' == ch && '"' == p) {
+          out[s++] = p;
+          x++;
+        } else {
+          out[s++] = ch;
+        }
+      }
+
+      out[s] = '\0';
     }
+
+    printf("%s", out);
+
+    if (i < size - 1) { printf(" "); }
   }
+
   printf("\n");
   return NULL;
 }

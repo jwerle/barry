@@ -1,4 +1,3 @@
-print("init")
 
 name = "Joseph"
 age = 24
@@ -8,12 +7,11 @@ def hello
 end
 
 def greet
-  print("hello", name, "who is", age, "years old")
+  print("hello", name, "who is", age, "years old 'blah blah' \"foo\"")
 end
 
-def object.hello
+def main
   hello()
   greet()
 end
 
-object.hello()

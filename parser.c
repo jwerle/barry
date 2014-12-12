@@ -1,5 +1,6 @@
 
 #include <math.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -156,6 +157,7 @@ static void *
 get_declaration (barry_node_t *node) {
   const char *key = node->token.as.string;
   int i = 0;
+
 #define var SCOPE->decls[i]
 #define find() \
   for (i = 0; i < SCOPE->decl_length; ++i) { \
@@ -205,7 +207,6 @@ static int
 assign_declaration_node (barry_node_t *node) {
   barry_node_t *value = node->next->next;
   char *key = node->token.as.string;
-  uint64_t *nv = NULL;
   void *v = NULL;
 
   if (NULL == value) {
@@ -292,8 +293,8 @@ call_function_node (barry_node_t *node) {
 #define push(v) arguments.values[arguments.length++] = v;
 
   while (TOK_RPAREN != next->token.type) {
-    next = next->next;
     node->ast->current = next;
+    next = next->next;
     switch (next->token.type) {
       case TOK_NUMBER:
       case TOK_STRING:
@@ -348,6 +349,7 @@ call_function_node (barry_node_t *node) {
 
 static int
 parse_node (barry_node_t *node) {
+  node->ast->current = node->next;
   switch (node->token.type) {
     case TOK_NONE:
       break;
@@ -378,9 +380,6 @@ parse_node (barry_node_t *node) {
         }
       }
       break;
-
-    default:
-      node->ast->current = node->next;
   }
 
   return 0;
@@ -401,7 +400,10 @@ barry_eval (barry_ast_t *ast) {
 int
 barry_parse (char *file, char *src, barry_scope_t *scope) {
   barry_lexer_t *lexer = (barry_lexer_t *) malloc(sizeof(barry_lexer_t));
+  barry_node_t main;
   barry_ast_t *ast = (barry_ast_t *) malloc(sizeof(barry_ast_t));
+  barry_def_t *def = NULL;
+  int rc = 0;
 
   if (NULL == lexer) {
     error("error: lexer allocation error\n");
@@ -441,5 +443,19 @@ barry_parse (char *file, char *src, barry_scope_t *scope) {
   free(lexer);
 
   // parse ast
-  return barry_eval(ast);
+  rc = barry_eval(ast);
+
+  if (NULL == scope) {
+    main.ast = ast;
+    main.token.type = TOK_IDENTIFIER;
+    main.token.as.string = "main";
+    main.scope = BARRY_GLOBAL;
+
+    def = get_definition(&main);
+    if (NULL != def) {
+      rc = barry_parse((char *) def->name, (char *) def->body, def->locals);
+    }
+  }
+
+  return rc;
 }
