@@ -81,11 +81,6 @@ is_function_declaration (barry_node_t *node) {
     return 0;
   }
 
-  if (TOK_LBRACE != next->token.type) {
-    error("Unexpected token. Expected `('.");
-    return 0;
-  }
-
   next = next->next;
 
   if (NULL == next) {
@@ -243,16 +238,10 @@ assign_function_declaration_node (barry_node_t *node) {
   int rbrace = 0;
 
   name = next->token.as.string;
-  next = next->next;
-
-  if (TOK_LBRACE != next->token.type) {
-    error("Unexpected token. Expected `{'.");
-    return 1;
-  }
 
   next = next->next;
   memset(body, 0, BUFSIZ);
-  while (TOK_RBRACE != next->token.type || rbrace > 0) {
+  while (TOK_END != next->token.type || rbrace > 0) {
     if (TOK_STRING == next->token.type) {
       strcat(body, "\"");
       strcat(body, next->token.as.string);
@@ -289,14 +278,14 @@ call_function_node (barry_node_t *node) {
   arguments.length = 0;
 
   if (TOK_LPAREN != next->token.type) {
-    error("Unexpected token. Expected `('");
+    error("Unexpected token. Expected `('\n");
     return 1;
   }
 
   next = node->next;
 
   if (NULL == next) {
-    error("Unexpected end of input");
+    error("Unexpected end of input\n");
     return 1;
   }
 
@@ -384,11 +373,14 @@ parse_node (barry_node_t *node) {
 
       // function declaration
       if (is_function_declaration(node)) {
-        if (assign_function_declaration_node(node)) {
-
+        if (assign_function_declaration_node(node) > 0) {
+          return 1;
         }
       }
       break;
+
+    default:
+      node->ast->current = node->next;
   }
 
   return 0;

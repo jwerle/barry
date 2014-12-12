@@ -3,17 +3,17 @@ print("init")
 name = "Joseph"
 age = 24
 
-def hello {
+def hello
   print("world")
-}
+end
 
-def greet {
+def greet
   print("hello", name, "who is", age, "years old")
-}
+end
 
-def object.hello {
+def object.hello
   hello()
   greet()
-}
+end
 
 object.hello()

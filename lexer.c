@@ -105,6 +105,8 @@ scan_identifier (barry_lexer_t *self, unsigned char ch) {
 
   if (num) {
     token(self, TOK_NUMBER, (char *) buf);
+  } else if (EQ("end", (char *) buf)) {
+    token(self, TOK_END, (char *) buf);
   } else {
     token(self, TOK_IDENTIFIER, (char *) buf);
   }

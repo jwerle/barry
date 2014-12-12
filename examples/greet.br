@@ -1,0 +1,8 @@
+
+def greet
+  name = "Joseph Werle"
+  print("Hey", name, "!");
+end
+
+greet()
+
