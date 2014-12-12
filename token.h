@@ -15,6 +15,15 @@
 #define TOK_EQUAL 0x0010
 #define TOK_NEGATE 0x0011
 #define TOK_PIPE 0x0012
+#define TOK_NUMBER 0x0013
+#define TOK_DEF 0x0014
+#define TOK_LBRACE 0x0015
+#define TOK_RBRACE 0x0016
+#define TOK_LBRACKET 0x0017
+#define TOK_RBRACKET 0x0018
+#define TOK_DO 0x0019
+#define TOK_END 0x0020
+#define TOK_COMMA 0x0021
 
 typedef struct barry_token {
   int type;
@@ -23,9 +32,9 @@ typedef struct barry_token {
 
   char *name;
 
-  union {
+  struct {
     char *string;
-    unsigned int integer;
+    float number;
   } as;
 
 } barry_token_t;

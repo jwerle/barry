@@ -11,12 +11,12 @@
 static unsigned char
 next (barry_lexer_t *self) {
   unsigned char ch = 0;
-  int idx = self->offset + 1;
+  int idx = self->offset;
 
   ch = self->src[idx];
 
   if ('\0' != ch) {
-    self->offset = idx;
+    self->offset = idx + 1;
     self->pch = self->ch;
     self->ch = ch;
 
@@ -60,17 +60,26 @@ token (barry_lexer_t *self, int type, char *buf) {
   self->curr.as.string = strdup(buf);
   self->curr.lineno = self->lineno;
   self->curr.colno = self->colno;
+
+  switch (type) {
+    case TOK_NUMBER:
+      self->curr.as.number = atof(buf);
+      break;
+  }
 }
 
 static int
 scan_identifier (barry_lexer_t *self, unsigned char ch) {
   unsigned char buf[BUFSIZ];
   size_t size = 0;
+  int num = 0;
+  int i = 0;
 
   do {
     buf[size++] = ch;
     ch = next(self);
-  } while (isalpha(ch) || isdigit(ch) || '_' == ch);
+  } while (isalpha(ch) || isdigit(ch) || '_' == ch || '.' == ch);
+
 
   prev(self);
 
@@ -81,7 +90,19 @@ scan_identifier (barry_lexer_t *self, unsigned char ch) {
 
   buf[size] = '\0';
   self->colno -= size;
-  token(self, TOK_IDENTIFIER, (char *) buf);
+
+  num = 1;
+  for (; i < size; ++i) {
+    if (!isdigit(buf[i]) && '.' != buf[i]) {
+      num = 0;
+    }
+  }
+
+  if (num) {
+    token(self, TOK_NUMBER, (char *) buf);
+  } else {
+    token(self, TOK_IDENTIFIER, (char *) buf);
+  }
 
   return 0;
 }
@@ -132,6 +153,10 @@ scan:
     case ' ': case '\t':
       goto scan;
 
+    case '#':
+      while (ch != '\n' && ch != '\r') { ch = next(self); }
+      goto scan;
+
     case '\r': case '\n':
       self->lineno++;
       self->colno = 1;
@@ -139,6 +164,9 @@ scan:
 
     case '"': case '\'':
       return scan_string(self, ch);
+
+    case ',':
+      return token(self, TOK_COMMA, ","), 0;
 
     case '(':
       return token(self, TOK_LPAREN, "("), 0;
@@ -168,7 +196,19 @@ scan:
       return token(self, TOK_NEGATE, "!"), 0;
 
     case '|':
-      return token(self, TOK_NEGATE, "|"), 0;
+      return token(self, TOK_PIPE, "|"), 0;
+
+    case '{':
+      return token(self, TOK_LBRACE, "{"), 0;
+
+    case '}':
+      return token(self, TOK_RBRACE, "}"), 0;
+
+    case '[':
+      return token(self, TOK_LBRACKET, "["), 0;
+
+    case ']':
+      return token(self, TOK_RBRACKET, "]"), 0;
 
     default: return scan_identifier(self, ch);
   }

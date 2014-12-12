@@ -3,18 +3,21 @@
 #define BARRY_GLOBAL_H
 
 #include "ast.h"
+#include "common.h"
 
-#define BARRY_FUNCTION(n, fn)                                        \
+#define BARRY_BUILTIN_FUNCTION(n, fn)                                \
   BARRY_GLOBAL->functions[BARRY_GLOBAL->function_length++] =         \
     (barry_function_t) {  .name = n, .function = fn, };
 
-#define BARRY_DECLARTION(k, v)                                       \
-  BARRY_GLOBAL->decls[BARRY_GLOBAL->decl_length++] =                 \
-    (barry_declaration_t) { .key = k, .value = (void *) v };
-
-extern barry_global_t *BARRY_GLOBAL;
+extern barry_scope_t *BARRY_GLOBAL;
 
 void
 barry_init_globals ();
+
+void
+BARRY_DECLARTION (const char *, void *);
+
+void
+BARRY_DEFINITION (const char *, const char *);
 
 #endif

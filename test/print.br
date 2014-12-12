@@ -1,4 +1,15 @@
+print("init")
 
-foo = "123"
-print("parser test")
-print(foo)
+name = "Joseph"
+age = 24
+
+def hello {
+  print("world")
+}
+
+def greet {
+  print("hello", name, "who is", age, "years old")
+}
+
+hello()
+greet()
